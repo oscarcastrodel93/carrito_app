@@ -61,8 +61,13 @@
                     </a>
                 </li>
             </ul>
+            <ul class="navbar-nav mr-auto" style="color:white;">
+                <li class="nav-item ml-2 my-7 my-lg-0">
+                    Hola {{ request.user.first_name }}, 
+                </li>
+            </ul>
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item ml-5 my-2 my-lg-0">
+                <li class="nav-item ml-2 my-2 my-lg-0">
                     <a href="/logout/" class="nav-link">
                         Cerrar sesión
                     </a>
