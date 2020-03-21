@@ -15,12 +15,25 @@
                 }
             });
         }
+
+        
+        $.ajax({
+            type: 'GET',
+            url: '/api/productos/',
+            data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+            dataType: 'json',
+            success: function (data) {
+                $scope.productos = data;
+                $scope.$apply();
+            }
+        });
+
     });
 </script>
 <style>
 
 </style>
-<div ng-controller="indexCtrl" ng-init="productos = {{productos}}" class="index">
+<div ng-controller="indexCtrl" ng-init="productos = []" class="index">
     <h3>Productos</h3>
     <table class="table table-hover">
         <tr>
@@ -37,7 +50,7 @@
                     <div class="input-group">
                         <input type="number" class="form-control" placeholder="Cant."  ng-model="producto.cantidad">
                         <div class="input-group-append">
-                            <button type="button" class="btn btn-sm btn-primary" ng-disabled="producto.cantidad<=0" ng-click="agregar(producto)">Agregar al carrito</button>
+                            <button type="button" class="btn btn-sm btn-primary" ng-disabled="!producto.cantidad || producto.cantidad<=0" ng-click="agregar(producto)">Agregar al carrito</button>
                         </div>
                     </div>
                 </td>

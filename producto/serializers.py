@@ -8,7 +8,8 @@ class ProductoSerializers(serializers.ModelSerializer):
         model = Producto
         fields = (
             'id', 
-            'image', 
+            'referencia', 
             'descripcion', 
-            'user'
-            ) 
+            'precio', 
+            'creation_date'
+        ) 

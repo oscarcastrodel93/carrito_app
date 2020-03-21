@@ -1,0 +1,41 @@
+{% extends "base/__base.html" %}
+{% load i18n %}
+
+{% block content %}
+<script>
+    app.controller('comprasCtrl', function($scope, $http) {
+
+    });
+</script>
+
+<div ng-controller="comprasCtrl" ng-init="compras = {{compras}}">
+    <h3>Compras</h3>
+    <div class="card mt-2" ng-repeat="compra in compras">
+        <div class="card-body">
+            <h5 class="card-title">Compra {$compra.id$}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Total: ${$compra.valor_total|number:2$}</h6>
+            <table class="table table-hover" ng-show="compra.items_compra.length > 0">
+                <tr>
+                    <th class="text-center">Referencia</th>
+                    <th class="text-center">Descripción</th>
+                    <th class="text-center">Precio</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-center">Subtotal</th>
+                </tr>
+                <tr ng-repeat="item in compra.items_compra">
+                    <td>{$ item.referencia $}</td>
+                    <td>{$ item.descripcion $}</td>
+                    <td class="text-right">${$ item.precio|number:2 $}</td>
+                    <td class="text-right">${$ item.cantidad|number $}</td>
+                    <td class="text-right">${$ (item.precio*item.cantidad) |number:2 $}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="alert alert-secondary" role="alert" ng-show="compras.length <= 0">
+        Nada por aquí!
+    </div>
+
+    
+</div>
+{% endblock %}

@@ -16,8 +16,10 @@
                 dataType: 'json',
                 success: function (data) {
                     alert(data.msg);
-                    $scope.items_carrito.splice(index, 1);
-                    $scope.$apply();
+                    if(data.ok){
+                        $scope.items_carrito.splice(index, 1);
+                        $scope.$apply();
+                    }
                 }
             });
         }
@@ -32,8 +34,10 @@
                 dataType: 'json',
                 success: function (data) {
                     alert(data.msg);
-                    $scope.items_carrito = [];
-                    $scope.$apply();
+                    if(data.ok){
+                        $scope.items_carrito = [];
+                        $scope.$apply();
+                    }
                 }
             });
         }
@@ -43,13 +47,15 @@
                 return
             $.ajax({
                 type: 'post',
-                data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                data: { 'items_carrito': JSON.stringify($scope.items_carrito), csrfmiddlewaretoken: '{{ csrf_token }}' },
                 url: '/ajax/procesarCompra/',
                 dataType: 'json',
                 success: function (data) {
                     alert(data.msg);
-                    $scope.items_carrito = [];
-                    $scope.$apply();
+                    if(data.ok){
+                        $scope.items_carrito = [];
+                        $scope.$apply();
+                    }
                 }
             });
         }
@@ -62,7 +68,7 @@
             return total;
         }
     });
-    </script>
+</script>
 
 <div ng-controller="carritoCtrl" ng-init="items_carrito = {{items_carrito}}">
     <h3>Carrito</h3>
@@ -77,16 +83,16 @@
                 <button class="btn btn-sm btn-danger" type="button" ng-click="vaciar()">Vaciar carrito</button>
             </th>
         </tr>
-            <tr ng-repeat="item in items_carrito">
-                <td>{$ item.referencia $}</td>
-                <td>{$ item.descripcion $}</td>
-                <td class="text-right">${$ item.precio|number:2 $}</td>
-                <td class="text-right" style="width:10%;"><input type="number" class="form-control" placeholder="Cant." ng-model="item.cantidad"></td>
-                <td class="text-right">${$ (item.precio*item.cantidad) |number:2 $}</td>
-                <td class="text-right">
-                    <button type="button" class="btn btn-sm btn-warning" ng-click="quitar($index, item.id)">Quitar</button>
-                </td>
-            </tr>
+        <tr ng-repeat="item in items_carrito">
+            <td>{$ item.referencia $}</td>
+            <td>{$ item.descripcion $}</td>
+            <td class="text-right">${$ item.precio|number:2 $}</td>
+            <td class="text-right" style="width:10%;"><input type="number" class="form-control" placeholder="Cant." ng-model="item.cantidad"></td>
+            <td class="text-right">${$ (item.precio*item.cantidad) |number:2 $}</td>
+            <td class="text-right">
+                <button type="button" class="btn btn-sm btn-warning" ng-click="quitar($index, item.id)">Quitar</button>
+            </td>
+        </tr>
     </table>
     <div class="alert alert-secondary" role="alert" ng-show="items_carrito.length <= 0">
         Nada por aquí!

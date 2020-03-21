@@ -23,11 +23,10 @@ def userLogin(request):
             user = authenticate(request, username=username, password=password)
             if user:
                 login(request, user)
-                return HttpResponseRedirect(reverse('index'))
-            else:
-                if password != confirm_password:
-                    return HttpResponse("Credenciales incorrectas")
+            return HttpResponseRedirect(reverse('index'))
         elif request.POST.get('register-submit'):
+            if password != confirm_password:
+                    return HttpResponse("Credenciales incorrectas")
             usuario_creado = User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
             return HttpResponseRedirect(reverse('index'))
     else:
@@ -38,23 +37,7 @@ def userLogout(request):
     return HttpResponseRedirect(reverse('userLogin'))
 
 def index(request):
-    from producto.models import Producto
-    current_user = User.objects.get(id=request.user.id)
-    productos = Producto.objects.all()
-    result = []
-    for producto in productos:
-        result.append({
-            'id': producto.id,
-            'referencia': producto.referencia,
-            'descripcion': producto.descripcion,
-            'precio': producto.precio,
-            'cantidad': 1,
-        })
-    data = {
-        'user': current_user,
-        'productos': json.dumps(result, cls=DjangoJSONEncoder)
-    }
-    return render(request, 'base/index.html', data)
+    return render(request, 'base/index.html', {})
 
 def agregarAlCarrito(request):
     try:
@@ -114,16 +97,60 @@ def verCarrito(request):
 
 def procesarCompra(request):
     try:
+        items_carrito = json.loads(request.POST.get('items_carrito', "[]"))
         from carrito.models import Carrito, OrdenCompra
+
+        # Actualizar cantidades, sumar total
+        total = 0
+        for item in items_carrito:
+            total += float(item.get("precio")) * item.get("cantidad")
+            Carrito.objects.filter(id=item.get('id')).update(cantidad=item.get("cantidad"))
+
+        # Crear orden de compra
         oc = OrdenCompra()
+        oc.total_items = len(items_carrito)
+        oc.valor_total = total
+        oc.user = request.user
         oc.save()
 
-        item_carrito = Carrito.objects.filter(user=request.user, orden_compra__isnull=True).update(orden_compra=oc)
+        # Setear orden de compra para los items del carrito
+        Carrito.objects.filter(user=request.user, orden_compra__isnull=True).update(orden_compra=oc)
+
         response = {"ok": True, "msg": "Compra realizada!"}
     except Exception as e:
+        print(e)
         response = {"ok": False, "msg": "No se pudo realizar la compra."}
     return HttpResponse(json.dumps(response, cls=DjangoJSONEncoder), content_type='application/json')
 
+def verCompras(request):
+    from carrito.models import OrdenCompra, Carrito
+    compras = OrdenCompra.objects.filter(user=request.user.id)
+    result = []
+    for compra in compras:
+        items = Carrito.objects.filter(orden_compra=compra)
+        items_compra = []
+        for item in items:
+            items_compra.append({
+                'id': item.id,
+                'referencia': item.producto.referencia,
+                'descripcion': item.producto.descripcion,
+                'precio': item.producto.precio,
+                'cantidad': item.cantidad,
+            })
+        result.append({
+            'id': compra.id,
+            'total_items': compra.total_items,
+            'valor_total': compra.valor_total,
+            'creation_date': compra.creation_date,
+            'items_compra': items_compra,
+        })
+    data = {
+        'compras': json.dumps(result, cls=DjangoJSONEncoder)
+    }
+    return render(request, 'compras.html', data)
+
 class CarritoSerialList(generics.ListCreateAPIView):
-    queryset = Carrito.objects.all()
     serializer_class = CarritoSerializers
+    def get_queryset(self):
+        user = self.request.user
+        return Carrito.objects.filter(user=user, orden_compra__isnull=True)

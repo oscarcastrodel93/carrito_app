@@ -8,6 +8,7 @@ urlpatterns = [
     #BASIC VIEWS
     url(r'^$',login_required(index), name='index'),
     url(r'^carrito', login_required(verCarrito), name='verCarrito'),
+    url(r'^compras', login_required(verCompras), name='verCompras'),
 
     #AJAX
     url(r'^ajax/agregarAlCarrito/$', login_required(agregarAlCarrito), name='agregarAlCarrito'),
@@ -17,6 +18,7 @@ urlpatterns = [
 
     #API REST
     url(r'^api/productos/$', ProductosSerialList.as_view()),
+    url(r'^api/carrito/$', CarritoSerialList.as_view()),
 
 
 ]
