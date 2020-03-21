@@ -1,0 +1,110 @@
+{% extends "base/__base.html" %}
+{% load i18n %}
+
+{% block content %}
+<script>
+    app.controller('carritoCtrl', function($scope, $http) {
+
+        $scope.quitar = function(index, id_carrito){
+            if (!confirm("Desea quitar el item del carrito?"))
+                return
+            
+            $.ajax({
+                type: 'post',
+                data: { 'id_carrito': id_carrito, csrfmiddlewaretoken: '{{ csrf_token }}' },
+                url: '/ajax/quitarDelCarrito/',
+                dataType: 'json',
+                success: function (data) {
+                    alert(data.msg);
+                    $scope.items_carrito.splice(index, 1);
+                    $scope.$apply();
+                }
+            });
+        }
+        
+        $scope.vaciar = function(index, id_carrito){
+            if (!confirm("Desea vaciar el carrito por completo?"))
+                return
+            $.ajax({
+                type: 'post',
+                data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                url: '/ajax/vaciarCarrito/',
+                dataType: 'json',
+                success: function (data) {
+                    alert(data.msg);
+                    $scope.items_carrito = [];
+                    $scope.$apply();
+                }
+            });
+        }
+        
+        $scope.procesar_compra = function(index, id_carrito){
+            if (!confirm("Confirma la compra de los items?"))
+                return
+            $.ajax({
+                type: 'post',
+                data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                url: '/ajax/procesarCompra/',
+                dataType: 'json',
+                success: function (data) {
+                    alert(data.msg);
+                    $scope.items_carrito = [];
+                    $scope.$apply();
+                }
+            });
+        }
+
+        $scope.total = function(){
+            let total = 0;
+            $scope.items_carrito.forEach(function (item) {
+                total += (item.precio*item.cantidad);
+            });
+            return total;
+        }
+    });
+    </script>
+
+<div ng-controller="carritoCtrl" ng-init="items_carrito = {{items_carrito}}">
+    <h3>Carrito</h3>
+    <table class="table table-hover" ng-show="items_carrito.length > 0">
+        <tr>
+            <th class="text-center">Referencia</th>
+            <th class="text-center">Descripción</th>
+            <th class="text-center">Precio</th>
+            <th class="text-center">Cantidad</th>
+            <th class="text-center">Subtotal</th>
+            <th class="text-right">
+                <button class="btn btn-sm btn-danger" type="button" ng-click="vaciar()">Vaciar carrito</button>
+            </th>
+        </tr>
+            <tr ng-repeat="item in items_carrito">
+                <td>{$ item.referencia $}</td>
+                <td>{$ item.descripcion $}</td>
+                <td class="text-right">${$ item.precio|number:2 $}</td>
+                <td class="text-right" style="width:10%;"><input type="number" class="form-control" placeholder="Cant." ng-model="item.cantidad"></td>
+                <td class="text-right">${$ (item.precio*item.cantidad) |number:2 $}</td>
+                <td class="text-right">
+                    <button type="button" class="btn btn-sm btn-warning" ng-click="quitar($index, item.id)">Quitar</button>
+                </td>
+            </tr>
+    </table>
+    <div class="alert alert-secondary" role="alert" ng-show="items_carrito.length <= 0">
+        Nada por aquí!
+    </div>
+    <ul class="list-group" style="float: right; width: 50%;">
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            Items en el carrito:
+            <span><strong>{$ items_carrito.length $}</strong></span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            Total:
+            <span><strong>${$ total() |number:2 $}</strong></span>
+        </li>
+        <li class="list-group-item text-center">
+            <button type="button" ng-click="procesar_compra()" class="btn btn-success" ng-disabled="items_carrito.length <= 0">Procesar compra</button>
+        </li>
+    </ul>
+
+    
+</div>
+{% endblock %}
